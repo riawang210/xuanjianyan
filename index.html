@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>选检验 · 30秒告诉你该用哪个统计方法</title>
+<style>
+  :root{
+    --bg:#0f1729;
+    --card:#ffffff;
+    --ink:#15233b;
+    --sub:#5b6b85;
+    --line:#e7ecf3;
+    --brand:#1f8a78;
+    --brand2:#16a085;
+    --brand-soft:#e6f5f1;
+    --accent:#ff5a76;
+    --warn:#b6791f;
+    --warn-soft:#fff7e6;
+    --shadow:0 10px 30px rgba(15,23,41,.12);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Helvetica,"Microsoft YaHei",sans-serif;
+    background:linear-gradient(180deg,#0f1729 0%,#13243b 38%,#0f1729 100%);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;justify-content:center;
+  }
+  .app{
+    width:100%;max-width:460px;min-height:100vh;
+    display:flex;flex-direction:column;
+    padding:18px 16px 40px;
+  }
+  /* header */
+  .top{color:#fff;text-align:center;padding:14px 6px 18px}
+  .logo{
+    display:inline-flex;align-items:center;gap:8px;
+    font-weight:800;font-size:15px;letter-spacing:.5px;
+    background:rgba(255,255,255,.08);padding:7px 14px;border-radius:999px;
+    border:1px solid rgba(255,255,255,.12);
+  }
+  .logo .dot{width:9px;height:9px;border-radius:50%;background:var(--brand2);box-shadow:0 0 0 4px rgba(22,160,133,.25)}
+  .top h1{font-size:23px;margin:16px 0 6px;font-weight:800;line-height:1.3}
+  .top p{font-size:13px;color:#9fb1cc;margin:0;line-height:1.6}
+  /* progress */
+  .progress{display:flex;align-items:center;gap:6px;justify-content:center;margin:16px 0 4px}
+  .progress .seg{height:4px;width:26px;border-radius:99px;background:rgba(255,255,255,.16);transition:.3s}
+  .progress .seg.on{background:var(--brand2);width:34px}
+  /* card */
+  .card{
+    background:var(--card);border-radius:22px;box-shadow:var(--shadow);
+    padding:22px 20px;margin-top:14px;
+    animation:rise .35s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .step-tag{font-size:12px;font-weight:700;color:var(--brand);letter-spacing:.5px;margin-bottom:10px}
+  .q{font-size:20px;font-weight:800;line-height:1.4;margin:0 0 4px}
+  .q-hint{font-size:13px;color:var(--sub);line-height:1.6;margin:8px 0 18px}
+  .opts{display:flex;flex-direction:column;gap:11px}
+  .opt{
+    text-align:left;border:1.5px solid var(--line);background:#fbfcfe;
+    border-radius:15px;padding:15px 16px;cursor:pointer;
+    display:flex;align-items:center;gap:13px;transition:.16s;
+    font-family:inherit;color:var(--ink);
+  }
+  .opt:active{transform:scale(.985)}
+  .opt:hover{border-color:var(--brand2);background:var(--brand-soft)}
+  .opt .ico{
+    flex:0 0 40px;height:40px;border-radius:12px;background:var(--brand-soft);
+    display:flex;align-items:center;justify-content:center;font-size:21px;
+  }
+  .opt .txt b{display:block;font-size:16px;font-weight:700;line-height:1.3}
+  .opt .txt span{display:block;font-size:12.5px;color:var(--sub);margin-top:3px;line-height:1.5}
+  .opt .arrow{margin-left:auto;color:#c2ccdb;font-size:18px}
+  /* nav */
+  .nav{display:flex;gap:10px;margin-top:18px}
+  .btn-back{
+    flex:0 0 auto;border:1.5px solid var(--line);background:#fff;color:var(--sub);
+    border-radius:12px;padding:11px 16px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;
+  }
+  .btn-back:active{transform:scale(.97)}
+  .sample{
+    margin-top:18px;text-align:center;
+  }
+  .sample b{color:#9fb1cc;font-size:12px;font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px}
+  .chip{
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);
+    color:#cdd8ea;font-size:12px;padding:7px 12px;border-radius:999px;cursor:pointer;font-family:inherit;
+  }
+  .chip:active{transform:scale(.96)}
+  /* result */
+  .result-top{
+    background:linear-gradient(135deg,var(--brand) 0%,var(--brand2) 100%);
+    color:#fff;border-radius:22px;padding:22px 20px;box-shadow:var(--shadow);
+    animation:rise .4s cubic-bezier(.2,.8,.2,1);
+  }
+  .result-top .label{font-size:12.5px;opacity:.85;font-weight:600;letter-spacing:.5px}
+  .result-top .method{font-size:27px;font-weight:800;margin:8px 0 2px;line-height:1.25}
+  .result-top .en{font-size:13px;opacity:.8;font-weight:500}
+  .result-top .reason{
+    margin-top:15px;font-size:14px;line-height:1.65;background:rgba(255,255,255,.14);
+    padding:12px 14px;border-radius:13px;
+  }
+  .sec{background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:18px 18px;margin-top:13px;animation:rise .45s}
+  .sec h3{font-size:14px;margin:0 0 10px;display:flex;align-items:center;gap:8px;font-weight:800}
+  .sec h3 .e{font-size:17px}
+  .sec .body{font-size:13.5px;line-height:1.7;color:#374863}
+  .path{
+    background:#0f1729;color:#7ee8d0;border-radius:11px;padding:11px 13px;
+    font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.6;
+    margin-top:8px;overflow-x:auto;white-space:nowrap;
+  }
+  .path b{color:#fff}
+  .pill{display:inline-block;background:var(--brand-soft);color:var(--brand);font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;margin-bottom:8px}
+  .warnbox{background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:0 11px 11px 0;padding:11px 13px;color:#7a5414;font-size:13px;line-height:1.65}
+  .altbox{background:#f4f7fb;border-radius:11px;padding:11px 13px;color:#4a5b76;font-size:13px;line-height:1.65}
+  .restart{
+    width:100%;margin-top:16px;border:none;border-radius:14px;padding:15px;
+    background:#fff;color:var(--brand);font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;
+    box-shadow:var(--shadow);
+  }
+  .restart:active{transform:scale(.98)}
+  .upsell{
+    margin-top:13px;background:linear-gradient(135deg,#222b3d,#13243b);border:1px solid rgba(255,255,255,.1);
+    border-radius:18px;padding:18px;color:#dfe7f3;
+  }
+  .upsell .t{font-weight:800;font-size:15px;color:#fff;display:flex;align-items:center;gap:8px}
+  .upsell .d{font-size:13px;color:#9fb1cc;margin:8px 0 14px;line-height:1.6}
+  .upsell .cta{
+    display:block;text-align:center;background:var(--accent);color:#fff;border:none;
+    border-radius:12px;padding:13px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit;width:100%;
+  }
+  .upsell .cta:active{transform:scale(.98)}
+  .upsell .mini{text-align:center;font-size:11px;color:#7d8aa3;margin-top:9px}
+  .foot{text-align:center;color:#5a6b86;font-size:11px;margin-top:22px;line-height:1.6}
+  .crumbs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .crumb{font-size:11px;background:var(--brand-soft);color:var(--brand);padding:4px 9px;border-radius:99px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <span class="logo"><span class="dot"></span>选检验 · 医生进化岛</span>
+    <h1 id="hTitle">这组数据，到底用<br>哪个统计方法？</h1>
+    <p id="hSub">不用学 SPSS，回答几个问题<br>30 秒告诉你该用什么检验 + 操作路径</p>
+    <div class="progress" id="prog"></div>
+  </div>
+  <div id="stage"></div>
+  <div class="foot">
+    决策依据：经典医学统计方法选择树 · 结果仅供选型参考<br>「医生进化岛 · 面向医生和医学生」出品 · 原型 Demo
+  </div>
+</div>
+
+<script>
+/* ---------- 决策树定义 ---------- */
+const RESULTS = {
+  ttest_ind:{
+    method:"独立样本 t 检验", en:"Independent samples t-test",
+    reason:"比较两组独立样本的连续指标均值，数据近似正态、样本量够，t 检验最有把握。",
+    spss:"分析 → 比较均值 → <b>独立样本 T 检验</b>",
+    r:'t.test(y ~ group, var.equal = FALSE)',
+    pitfall:"先看方差齐性（Levene）；不齐就用校正后的 Welch t（SPSS 输出第二行）。",
+    alt:"为什么不是 Mann-Whitney U？——你的数据近似正态，t 检验的把握度更高，没必要降级到非参数。",
+    report:"报告 均值 ± 标准差（x̄ ± s）"
+  },
+  mwu:{
+    method:"Mann-Whitney U 检验", en:"Mann-Whitney U test（秩和检验）",
+    reason:"两组独立、连续/有序指标，但不满足正态或样本量小，比较分布位置用秩和检验。",
+    spss:"分析 → 非参数检验 → 旧对话框 → <b>2 个独立样本</b> → Mann-Whitney U",
+    r:'wilcox.test(y ~ group)',
+    pitfall:"结果别报均值，要报<b>中位数 + 四分位距（M, IQR）</b>。",
+    alt:"为什么不是 t 检验？——数据偏态或样本太小，t 检验前提不稳，结论容易失真。",
+    report:"报告 中位数（P25, P75）"
+  },
+  ttest_pair:{
+    method:"配对 t 检验", en:"Paired t-test",
+    reason:"同一批对象前后/配对设计，差值近似正态，配对设计利用配对信息更敏感。",
+    spss:"分析 → 比较均值 → <b>配对样本 T 检验</b>",
+    r:'t.test(before, after, paired = TRUE)',
+    pitfall:"检验的是「差值」的正态性，不是原始值的正态性。",
+    alt:"为什么不是独立样本 t？——你的两组是配对的，当成独立会损失把握度，而且统计上不正确。",
+    report:"报告 差值均值 ± 标准差及 95%CI"
+  },
+  wilcoxon:{
+    method:"Wilcoxon 符号秩检验", en:"Wilcoxon signed-rank test",
+    reason:"配对设计但差值不满足正态，用符号秩检验比较配对差异。",
+    spss:"分析 → 非参数检验 → 旧对话框 → <b>2 个相关样本</b> → Wilcoxon",
+    r:'wilcox.test(before, after, paired = TRUE)',
+    pitfall:"报告中位数差值，不要报均值差。",
+    alt:"为什么不是配对 t？——差值不正态，配对 t 的前提不满足。",
+    report:"报告 中位数差值"
+  },
+  anova:{
+    method:"单因素方差分析 (ANOVA)", en:"One-way ANOVA",
+    reason:"≥3 组独立、连续指标、近似正态且方差齐，先用 ANOVA 看总体是否有差异。",
+    spss:"分析 → 比较均值 → <b>单因素 ANOVA</b>（事后用 Tukey / Bonferroni）",
+    r:'fit <- aov(y ~ group); summary(fit); TukeyHSD(fit)',
+    pitfall:"ANOVA 只说「至少两组不同」，要两两比较<b>必须做事后检验并校正</b>，别直接做多次 t 检验。",
+    alt:"为什么不是做 3 次 t 检验？——多次比较会抬高假阳性率，必须用 ANOVA + 事后校正。",
+    report:"报告 各组 均值 ± 标准差 + 事后两两 P 值"
+  },
+  kruskal:{
+    method:"Kruskal-Wallis H 检验", en:"Kruskal-Wallis test",
+    reason:"≥3 组独立、连续/有序但不正态，用秩和的多组扩展。",
+    spss:"分析 → 非参数检验 → 旧对话框 → <b>K 个独立样本</b> → Kruskal-Wallis",
+    r:'kruskal.test(y ~ group)  # 事后用 dunn.test',
+    pitfall:"显著后两两比较用 <b>Dunn 检验</b>并校正多重比较。",
+    alt:"为什么不是 ANOVA？——数据不正态，ANOVA 前提不满足。",
+    report:"报告 各组 中位数（IQR）"
+  },
+  rmanova:{
+    method:"重复测量方差分析", en:"Repeated-measures ANOVA",
+    reason:"同一批对象多个时间点/条件、近似正态，用重复测量 ANOVA。",
+    spss:"分析 → 一般线性模型 → <b>重复测量</b>",
+    r:'ez::ezANOVA(...) 或 nlme::lme(...)',
+    pitfall:"注意球形假设（Mauchly），不满足时用 <b>Greenhouse-Geisser</b> 校正。",
+    alt:"为什么不是单因素 ANOVA？——同一批人重复测量数据彼此相关，当成独立组会出错。",
+    report:"报告 各时点 均值 ± 标准差"
+  },
+  friedman:{
+    method:"Friedman 检验", en:"Friedman test",
+    reason:"同一批对象多次测量但不正态，用 Friedman 秩检验。",
+    spss:"分析 → 非参数检验 → 旧对话框 → <b>K 个相关样本</b> → Friedman",
+    r:'friedman.test(y, groups, blocks)',
+    pitfall:"事后两两用 Wilcoxon 并校正。",
+    alt:"为什么不是重复测量 ANOVA？——数据不正态，前提不满足。",
+    report:"报告 各时点 中位数（IQR）"
+  },
+  chisq:{
+    method:"卡方检验", en:"Pearson's Chi-square test",
+    reason:"比较两组的率/构成比，样本量足够、期望频数 ≥5，用 Pearson 卡方。",
+    spss:"分析 → 描述统计 → <b>交叉表</b> → 统计量勾选「卡方」",
+    r:'chisq.test(table)',
+    pitfall:"看 SPSS 输出脚注：若期望频数 <5 的格子超过 20%，<b>改用 Fisher 精确检验</b>。",
+    alt:"为什么不是 Fisher？——你的样本量够大、期望频数达标，卡方即可，无需精确检验。",
+    report:"报告 n（%）+ χ² 值 + P 值"
+  },
+  fisher:{
+    method:"Fisher 精确检验", en:"Fisher's exact test",
+    reason:"两组分类，但样本量小（n<40）或有期望频数 <5，卡方不可靠，用 Fisher 精确检验。",
+    spss:"交叉表里 2×2 会<b>自动给出 Fisher 精确检验</b>结果（看输出表）",
+    r:'fisher.test(table)',
+    pitfall:"小样本，结论外推要谨慎。",
+    alt:"为什么不是卡方？——期望频数太小，卡方会高估显著性（假阳性）。",
+    report:"报告 n（%）+ Fisher 精确 P 值"
+  },
+  mcnemar:{
+    method:"McNemar 检验", en:"McNemar's test",
+    reason:"配对的二分类数据（如同一批人治疗前后阳/阴），用 McNemar。",
+    spss:"交叉表 → 统计量 → 勾选 <b>McNemar</b>",
+    r:'mcnemar.test(table)',
+    pitfall:"关注的是前后「改变方向不一致」的两格（b 和 c）。",
+    alt:"为什么不是普通卡方？——数据是配对的，普通卡方假设独立会出错。",
+    report:"报告 配对 n + P 值"
+  },
+  chisq_rxc:{
+    method:"卡方检验（R×C 列联表）", en:"R×C Chi-square test",
+    reason:"多组或多分类的构成比比较，用行×列卡方。",
+    spss:"交叉表 → 统计量 → <b>卡方</b>",
+    r:'chisq.test(table)',
+    pitfall:"期望频数 <5 的格子过多时用 <b>Fisher-Freeman-Halton 精确检验</b>；有序变量考虑趋势卡方。",
+    alt:"若变量有序、想看「随等级递增的趋势」，用线性趋势卡方更有效。",
+    report:"报告 各组 n（%）+ χ² + P 值"
+  },
+  pearson:{
+    method:"Pearson 相关", en:"Pearson correlation",
+    reason:"两个连续变量、近似正态、关系线性，看相关强度用 Pearson r。",
+    spss:"分析 → 相关 → 双变量 → 勾选 <b>Pearson</b>",
+    r:'cor.test(x, y, method = "pearson")',
+    pitfall:"先画<b>散点图</b>确认是线性关系；相关 ≠ 因果。",
+    alt:"为什么不是 Spearman？——数据近似正态且线性，Pearson 更有效。",
+    report:"报告 r 值 + 95%CI + P 值"
+  },
+  spearman:{
+    method:"Spearman 相关", en:"Spearman rank correlation",
+    reason:"变量有序，或不正态/关系非线性，用 Spearman 秩相关。",
+    spss:"分析 → 相关 → 双变量 → 勾选 <b>Spearman</b>",
+    r:'cor.test(x, y, method = "spearman")',
+    pitfall:"反映的是「单调关系」，不是严格线性关系。",
+    alt:"为什么不是 Pearson？——数据不正态或有序，Pearson 前提不满足。",
+    report:"报告 rs 值 + P 值"
+  },
+  assoc_cat:{
+    method:"卡方 / Fisher 关联检验", en:"Chi-square / Fisher for association",
+    reason:"两个分类变量之间是否关联，用卡方（小样本用 Fisher）。",
+    spss:"交叉表 → 统计量 → <b>卡方</b>（小样本看 Fisher 行）",
+    r:'chisq.test(table)  # 小样本 fisher.test(table)',
+    pitfall:"期望频数 <5 过多就改 Fisher；关联强度可看 Cramér's V / OR。",
+    alt:"想量化关联强度（而非只看有无），2×2 表可加算 OR 及其 95%CI。",
+    report:"报告 χ²/Fisher P 值 + OR（95%CI）"
+  },
+  linreg:{
+    method:"多重线性回归", en:"Multiple linear regression",
+    reason:"结局是连续变量，想在校正多个混杂后看影响因素，用多重线性回归。",
+    spss:"分析 → 回归 → <b>线性</b>",
+    r:'lm(y ~ x1 + x2 + x3, data = d)',
+    pitfall:"检查线性、残差正态、共线性（VIF<5）、异常值。",
+    alt:"自变量很多、样本有限时注意过拟合，先做单因素筛选或用逐步法。",
+    report:"报告 β（95%CI）+ P 值 + R²"
+  },
+  logistic:{
+    method:"二元 Logistic 回归", en:"Binary logistic regression",
+    reason:"结局是二分类（发生/不发生），想校正混杂、算 OR，用 Logistic 回归。",
+    spss:"分析 → 回归 → <b>二元 Logistic</b>",
+    r:'glm(y ~ ., family = binomial, data = d)',
+    pitfall:"事件数要够：<b>每个自变量至少 10 个阳性事件（EPV≥10）</b>，否则模型不稳。",
+    alt:"若结局是「多久发生」且有随访删失，应改用 Cox 回归。",
+    report:"报告 OR（95%CI）+ P 值"
+  },
+  cox:{
+    method:"生存分析：KM + Log-rank / Cox 回归", en:"Kaplan-Meier & Cox regression",
+    reason:"结局是「时间到事件」（生存、复发时间）且存在删失：单/多组比较用 KM 曲线 + Log-rank，多因素校正用 Cox 回归。",
+    spss:"分析 → 生存分析 → <b>Kaplan-Meier</b> / <b>Cox 回归</b>",
+    r:'survival::survfit / survdiff / coxph(Surv(time,event)~x)',
+    pitfall:"Cox 需满足<b>比例风险（PH）假设</b>，记得检验。",
+    alt:"为什么不是 Logistic？——你关心「多久发生」而不仅是「是否发生」，且有删失数据，Logistic 会浪费时间信息。",
+    report:"报告 HR（95%CI）+ Log-rank P + 生存曲线"
+  }
+};
+
+/* 问题节点：opt = {label, desc, emoji, next 或 result} */
+const NODES = {
+  start:{
+    tag:"第 1 步 · 研究目的",
+    q:"你这次分析，主要想干什么？",
+    hint:"先想清楚目的，方法就定了一大半。",
+    opts:[
+      {emoji:"⚖️",label:"比较组间差异",desc:"看不同组（如治疗组 vs 对照组）的指标有没有不同",next:"cmp_outcome"},
+      {emoji:"🔗",label:"看两个变量的关系",desc:"两个指标是否相关 / 关联（如年龄与血压）",next:"corr_type"},
+      {emoji:"🎯",label:"找影响因素 / 做预测",desc:"校正混杂、算 OR/HR，或建预测模型",next:"predict_outcome"}
+    ]
+  },
+  /* ===== 比较 ===== */
+  cmp_outcome:{
+    tag:"第 2 步 · 结局类型",
+    q:"你要比较的结局指标，是什么类型？",
+    hint:"这是决定参数 / 非参数检验的关键一步。",
+    opts:[
+      {emoji:"📈",label:"连续变量（计量资料）",desc:"如：血压、年龄、检验值、评分",next:"cmp_cont_groups"},
+      {emoji:"🔢",label:"分类变量（计数资料）",desc:"如：有效/无效、生存/死亡、分期",next:"cmp_cat_struct"}
+    ]
+  },
+  cmp_cont_groups:{
+    tag:"第 3 步 · 分组数",
+    q:"分成几组来比较？",
+    opts:[
+      {emoji:"②",label:"两组",desc:"如：实验组 vs 对照组",next:"cmp_cont2_design"},
+      {emoji:"③",label:"三组及以上",desc:"如：低 / 中 / 高剂量组",next:"cmp_cont3_design"}
+    ]
+  },
+  cmp_cont2_design:{
+    tag:"第 4 步 · 设计类型",
+    q:"这两组是独立的，还是配对/自身前后？",
+    hint:"同一批人「治疗前 vs 治疗后」属于配对。",
+    opts:[
+      {emoji:"👥",label:"两组独立",desc:"两批不同的人",next:"cmp_cont2_norm"},
+      {emoji:"🔁",label:"配对 / 自身前后",desc:"同一批人测两次，或 1:1 配对",next:"cmp_pair_norm"}
+    ]
+  },
+  cmp_cont2_norm:{
+    tag:"第 5 步 · 分布",
+    q:"数据近似正态分布吗？",
+    hint:"经验法则：每组样本量 ≥30 通常可按正态处理；明显偏态或小样本则按「不正态」。",
+    opts:[
+      {emoji:"✅",label:"近似正态（或样本量大）",desc:"直方图大致对称 / n 较大",result:"ttest_ind"},
+      {emoji:"〰️",label:"不正态 / 样本量小",desc:"明显偏态、有极端值、n 较小",result:"mwu"}
+    ]
+  },
+  cmp_pair_norm:{
+    tag:"第 5 步 · 分布",
+    q:"配对「差值」近似正态吗？",
+    hint:"看的是前后差值的分布，不是原始值。",
+    opts:[
+      {emoji:"✅",label:"差值近似正态",desc:"",result:"ttest_pair"},
+      {emoji:"〰️",label:"差值不正态 / 小样本",desc:"",result:"wilcoxon"}
+    ]
+  },
+  cmp_cont3_design:{
+    tag:"第 4 步 · 设计类型",
+    q:"各组是不同的人，还是同一批人多次测量？",
+    opts:[
+      {emoji:"👥",label:"独立的多组",desc:"几批不同的人",next:"cmp_cont3_norm"},
+      {emoji:"🔁",label:"同一批人重复测量",desc:"如多个时间点随访",next:"cmp_rep_norm"}
+    ]
+  },
+  cmp_cont3_norm:{
+    tag:"第 5 步 · 分布",
+    q:"数据近似正态、且各组方差齐吗？",
+    opts:[
+      {emoji:"✅",label:"正态 + 方差齐",desc:"",result:"anova"},
+      {emoji:"〰️",label:"不正态 / 方差不齐",desc:"",result:"kruskal"}
+    ]
+  },
+  cmp_rep_norm:{
+    tag:"第 5 步 · 分布",
+    q:"数据近似正态吗？",
+    opts:[
+      {emoji:"✅",label:"近似正态",desc:"",result:"rmanova"},
+      {emoji:"〰️",label:"不正态",desc:"",result:"friedman"}
+    ]
+  },
+  cmp_cat_struct:{
+    tag:"第 3 步 · 数据结构",
+    q:"分类数据是什么结构？",
+    opts:[
+      {emoji:"②",label:"两组独立 · 二分类",desc:"如 A/B 两组的 有效率",next:"cmp_cat_freq"},
+      {emoji:"🔁",label:"配对的二分类",desc:"同一批人前后阳/阴",result:"mcnemar"},
+      {emoji:"🔳",label:"多组 / 多分类（R×C 表）",desc:"≥3 组或多个类别",result:"chisq_rxc"}
+    ]
+  },
+  cmp_cat_freq:{
+    tag:"第 4 步 · 样本量",
+    q:"样本量和期望频数情况？",
+    hint:"期望频数 = 行合计 × 列合计 ÷ 总例数。SPSS 会在脚注提示。",
+    opts:[
+      {emoji:"✅",label:"样本够大（n≥40 且 期望频数都≥5）",desc:"",result:"chisq"},
+      {emoji:"⚠️",label:"小样本（n<40 或 有期望频数<5）",desc:"",result:"fisher"}
+    ]
+  },
+  /* ===== 相关 ===== */
+  corr_type:{
+    tag:"第 2 步 · 变量类型",
+    q:"你要看关系的两个变量，是什么类型？",
+    opts:[
+      {emoji:"📈",label:"两个都是连续变量",desc:"如：年龄 与 血压",next:"corr_norm"},
+      {emoji:"🔢",label:"含有序变量 / 不正态",desc:"如：分期 与 评分",result:"spearman"},
+      {emoji:"🔳",label:"两个都是分类变量",desc:"如：吸烟与否 与 患病与否",result:"assoc_cat"}
+    ]
+  },
+  corr_norm:{
+    tag:"第 3 步 · 分布",
+    q:"两个连续变量都近似正态、关系大致线性吗？",
+    hint:"先画散点图看看趋势是不是一条直线。",
+    opts:[
+      {emoji:"✅",label:"近似正态 + 线性",desc:"",result:"pearson"},
+      {emoji:"〰️",label:"不正态 / 非线性",desc:"",result:"spearman"}
+    ]
+  },
+  /* ===== 预测 ===== */
+  predict_outcome:{
+    tag:"第 2 步 · 结局类型",
+    q:"你要预测/解释的结局，是什么类型？",
+    opts:[
+      {emoji:"📈",label:"连续变量",desc:"如：住院天数、某指标数值",result:"linreg"},
+      {emoji:"⭕",label:"二分类结局",desc:"如：发生 / 不发生、有效 / 无效",result:"logistic"},
+      {emoji:"⏱️",label:"时间到事件（有随访）",desc:"如：生存时间、复发时间（含删失）",result:"cox"}
+    ]
+  }
+};
+
+/* 示例场景：一键带入 */
+const SAMPLES=[
+  {t:"两组术后并发症率",path:["start","cmp_outcome","cmp_cat_struct","cmp_cat_freq"],pick:[0,1,0,0]},
+  {t:"小样本罕见病比较",path:["start","cmp_outcome","cmp_cat_struct","cmp_cat_freq"],pick:[0,1,0,1]},
+  {t:"两组血压不正态",path:["start","cmp_outcome","cmp_cont_groups","cmp_cont2_design","cmp_cont2_norm"],pick:[0,0,0,0,1]},
+  {t:"找死亡危险因素",path:["start","predict_outcome"],pick:[2,1]}
+];
+
+/* ---------- 渲染逻辑 ---------- */
+let nodeId="start", history=[], crumbs=[];
+const stage=document.getElementById("stage");
+const prog=document.getElementById("prog");
+const hTitle=document.getElementById("hTitle");
+const hSub=document.getElementById("hSub");
+
+function setProgress(step,total){
+  prog.innerHTML="";
+  for(let i=0;i<total;i++){
+    const s=document.createElement("span");
+    s.className="seg"+(i<step?" on":"");
+    prog.appendChild(s);
+  }
+}
+
+function renderNode(id){
+  nodeId=id;
+  const n=NODES[id];
+  setProgress(history.length+1,6);
+  let html=`<div class="card">`;
+  if(crumbs.length){
+    html+=`<div class="crumbs">`+crumbs.map(c=>`<span class="crumb">${c}</span>`).join("")+`</div>`;
+  }
+  html+=`<div class="step-tag">${n.tag}</div><h2 class="q">${n.q}</h2>`;
+  if(n.hint) html+=`<div class="q-hint">💡 ${n.hint}</div>`;
+  html+=`<div class="opts">`;
+  n.opts.forEach((o,i)=>{
+    html+=`<button class="opt" onclick="choose(${i})">
+      <span class="ico">${o.emoji}</span>
+      <span class="txt"><b>${o.label}</b>${o.desc?`<span>${o.desc}</span>`:""}</span>
+      <span class="arrow">›</span></button>`;
+  });
+  html+=`</div>`;
+  if(history.length){
+    html+=`<div class="nav"><button class="btn-back" onclick="goBack()">← 上一步</button></div>`;
+  }
+  html+=`</div>`;
+
+  // 示例 chips 仅首屏显示
+  if(id==="start"){
+    html+=`<div class="sample"><b>没头绪？点一个常见场景试试</b><div class="chips">`;
+    SAMPLES.forEach((s,i)=>{ html+=`<button class="chip" onclick="runSample(${i})">${s.t}</button>`; });
+    html+=`</div></div>`;
+  }
+  stage.innerHTML=html;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function choose(i){
+  const n=NODES[nodeId];
+  const o=n.opts[i];
+  history.push(nodeId);
+  crumbs.push(o.label);
+  if(o.result){ renderResult(o.result); }
+  else{ renderNode(o.next); }
+}
+
+function goBack(){
+  const prev=history.pop();
+  crumbs.pop();
+  if(prev) renderNode(prev);
+}
+
+function restart(){
+  history=[]; crumbs=[];
+  hTitle.innerHTML="这组数据，到底用<br>哪个统计方法？";
+  hSub.innerHTML="不用学 SPSS，回答几个问题<br>30 秒告诉你该用什么检验 + 操作路径";
+  renderNode("start");
+}
+
+function runSample(i){
+  const s=SAMPLES[i];
+  history=[]; crumbs=[];
+  // 重放到结果
+  for(let k=0;k<s.path.length;k++){
+    const node=NODES[s.path[k]];
+    const opt=node.opts[s.pick[k]];
+    if(k<s.path.length-1){ history.push(s.path[k]); crumbs.push(opt.label); }
+    else{ history.push(s.path[k]); crumbs.push(opt.label); nodeId=s.path[k]; renderResult(opt.result); }
+  }
+}
+
+function renderResult(rid){
+  setProgress(6,6);
+  const r=RESULTS[rid];
+  hTitle.innerHTML="✅ 帮你定好了";
+  hSub.innerHTML="下面就是该用的方法 + 怎么在 SPSS 里点";
+  let html=`<div class="result-top">
+    <div class="label">推荐方法</div>
+    <div class="method">${r.method}</div>
+    <div class="en">${r.en}</div>
+    <div class="reason">${r.reason}</div>
+  </div>`;
+
+  html+=`<div class="sec"><h3><span class="e">🖱️</span>SPSS 操作路径</h3>
+    <div class="body">照着点就行：</div>
+    <div class="path">${r.spss}</div>
+    <div class="body" style="margin-top:10px;"><span class="pill">R 代码</span></div>
+    <div class="path">${r.r}</div>
+  </div>`;
+
+  html+=`<div class="sec"><h3><span class="e">📝</span>结果该怎么报</h3>
+    <div class="body">${r.report}</div></div>`;
+
+  html+=`<div class="sec"><h3><span class="e">⚠️</span>最容易踩的坑</h3>
+    <div class="warnbox">${r.pitfall}</div></div>`;
+
+  html+=`<div class="sec"><h3><span class="e">🤔</span>为什么是它，不是别的</h3>
+    <div class="altbox">${r.alt}</div></div>`;
+
+  // 商业化钩子
+  html+=`<div class="upsell">
+    <div class="t">📦 想要「带你的真实数据」的进阶版？</div>
+    <div class="d">上传你的 Excel，自动帮你判断正态性、方差齐性，一键生成可写进论文的「方法学描述」段落和三线表。</div>
+    <button class="cta" onclick="alert('进阶版 · 即将在「医生进化岛」店铺上架 🎉')">解锁数据版（试用版排队中）</button>
+    <div class="mini">本页为免费选型工具 · 进阶分析为付费产品</div>
+  </div>`;
+
+  html+=`<button class="restart" onclick="restart()">↺ 重新选一次</button>`;
+  stage.innerHTML=html;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+renderNode("start");
+</script>
+</body>
+</html>
